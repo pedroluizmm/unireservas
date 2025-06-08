@@ -1,3 +1,4 @@
+# unireservas
 # UniReservas Backend
 
 Este projeto implementa uma API simples em **Node.js** que se conecta ao **MySQL** usando `mysql2/promise` e o framework `express`. Toda a lógica de rotas está concentrada em um único arquivo `server.js` para facilitar a compreensão e manutenção.
@@ -64,4 +65,3 @@ O pagamento é simulado. Cartões que começam com `4` são aprovados; qualquer 
 ## Observações
 As variáveis de ambiente são carregadas do arquivo `.env` caso exista. Utilize o arquivo `.env.example` apenas como modelo e não suba credenciais reais para o repositório.
 O esquema do banco deve conter as tabelas e chaves estrangeiras apresentadas no enunciado para que as rotas funcionem corretamente.
-
