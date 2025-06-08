@@ -9,6 +9,8 @@ dotenv.config(); // carregue variáveis de .env
 
 const app = express();
 app.use(express.json());
+// Serve arquivos estáticos da pasta "public"
+app.use(express.static('public'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // cria pool de conexões
