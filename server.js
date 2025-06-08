@@ -4,7 +4,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
 
-dotenv.config(); // leia as variáveis de .env
+dotenv.config(); // carregue variáveis de .env
 
 const app = express();
 app.use(express.json());
@@ -31,6 +31,17 @@ async function query(sql, params = []) {
   }
 }
 
+// validações básicas
+function validaEmail(email) {
+  return /^\S+@\S+\.\S+$/.test(email);
+}
+function validaTelefone(telefone) {
+  return /^\d{8,}$/.test(telefone);
+}
+function validaLocalizacao(loc) {
+  return ['interna', 'externa'].includes(String(loc).toLowerCase());
+}
+
 // =========================
 // CRUD Cliente
 // =========================
@@ -50,12 +61,20 @@ app.post('/api/clientes', async (req, res) => {
   if (!nome || !telefone || !email) {
     return res.status(400).json({ message: 'Dados incompletos' });
   }
+  if (!validaEmail(email) || !validaTelefone(telefone)) {
+    return res.status(400).json({ message: 'Formato inválido para telefone ou e-mail' });
+  }
   try {
     const result = await query(
       'INSERT INTO CLIENTE (nome, telefone, email) VALUES (?, ?, ?)',
       [nome, telefone, email]
     );
-    res.status(201).json({ id_cliente: result.insertId, nome, telefone, email });
+    res.status(201).json({
+      id_cliente: result.insertId,
+      nome,
+      telefone,
+      email
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erro ao criar cliente' });
@@ -68,12 +87,20 @@ app.put('/api/clientes/:id', async (req, res) => {
   if (!nome || !telefone || !email) {
     return res.status(400).json({ message: 'Dados incompletos' });
   }
+  if (!validaEmail(email) || !validaTelefone(telefone)) {
+    return res.status(400).json({ message: 'Formato inválido para telefone ou e-mail' });
+  }
   try {
     await query(
       'UPDATE CLIENTE SET nome = ?, telefone = ?, email = ? WHERE id_cliente = ?',
       [nome, telefone, email, id]
     );
-    res.json({ id_cliente: id, nome, telefone, email });
+    res.json({
+      id_cliente: id,
+      nome,
+      telefone,
+      email
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erro ao atualizar cliente' });
@@ -117,17 +144,17 @@ app.post('/api/restaurantes', async (req, res) => {
       'INSERT INTO RESTAURANTE (nome, endereco) VALUES (?, ?)',
       [nome, endereco]
     );
-    const id = r.insertId;
+    const id_restaurante = r.insertId;
     if (Array.isArray(horarios)) {
       for (const h of horarios) {
         await conn.execute(
           'INSERT INTO HORARIO_RESTAURANTE (restaurante_id, horario) VALUES (?, ?)',
-          [id, h]
+          [id_restaurante, h]
         );
       }
     }
     await conn.commit();
-    res.status(201).json({ id_restaurante: id, nome, endereco });
+    res.status(201).json({ id_restaurante, nome, endereco });
   } catch (err) {
     await conn.rollback();
     console.error(err);
@@ -139,7 +166,7 @@ app.post('/api/restaurantes', async (req, res) => {
 
 app.put('/api/restaurantes/:id', async (req, res) => {
   const { nome, endereco, horarios } = req.body;
-  const id = req.params.id;
+  const id_restaurante = req.params.id;
   if (!nome || !endereco) {
     return res.status(400).json({ message: 'Dados incompletos' });
   }
@@ -148,19 +175,22 @@ app.put('/api/restaurantes/:id', async (req, res) => {
     await conn.beginTransaction();
     await conn.execute(
       'UPDATE RESTAURANTE SET nome = ?, endereco = ? WHERE id_restaurante = ?',
-      [nome, endereco, id]
+      [nome, endereco, id_restaurante]
     );
-    await conn.execute('DELETE FROM HORARIO_RESTAURANTE WHERE restaurante_id = ?', [id]);
+    await conn.execute(
+      'DELETE FROM HORARIO_RESTAURANTE WHERE restaurante_id = ?',
+      [id_restaurante]
+    );
     if (Array.isArray(horarios)) {
       for (const h of horarios) {
         await conn.execute(
           'INSERT INTO HORARIO_RESTAURANTE (restaurante_id, horario) VALUES (?, ?)',
-          [id, h]
+          [id_restaurante, h]
         );
       }
     }
     await conn.commit();
-    res.json({ id_restaurante: id, nome, endereco });
+    res.json({ id_restaurante, nome, endereco });
   } catch (err) {
     await conn.rollback();
     console.error(err);
@@ -171,9 +201,9 @@ app.put('/api/restaurantes/:id', async (req, res) => {
 });
 
 app.delete('/api/restaurantes/:id', async (req, res) => {
-  const id = req.params.id;
+  const id_restaurante = req.params.id;
   try {
-    await query('DELETE FROM RESTAURANTE WHERE id_restaurante = ?', [id]);
+    await query('DELETE FROM RESTAURANTE WHERE id_restaurante = ?', [id_restaurante]);
     res.sendStatus(204);
   } catch (err) {
     console.error(err);
@@ -205,12 +235,20 @@ app.post('/api/mesas', async (req, res) => {
   if (!restauranteId || capacidade == null || !localizacao) {
     return res.status(400).json({ message: 'Dados incompletos' });
   }
+  if (!validaLocalizacao(localizacao)) {
+    return res.status(400).json({ message: 'Localização inválida' });
+  }
   try {
     const result = await query(
       'INSERT INTO MESA (restaurante_id, capacidade, localizacao) VALUES (?, ?, ?)',
       [restauranteId, capacidade, localizacao]
     );
-    res.status(201).json({ id_mesa: result.insertId, restauranteId, capacidade, localizacao });
+    res.status(201).json({
+      id_mesa: result.insertId,
+      restauranteId,
+      capacidade,
+      localizacao
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erro ao criar mesa' });
@@ -219,16 +257,19 @@ app.post('/api/mesas', async (req, res) => {
 
 app.put('/api/mesas/:id', async (req, res) => {
   const { capacidade, localizacao } = req.body;
-  const id = req.params.id;
+  const id_mesa = req.params.id;
   if (capacidade == null || !localizacao) {
     return res.status(400).json({ message: 'Dados incompletos' });
+  }
+  if (!validaLocalizacao(localizacao)) {
+    return res.status(400).json({ message: 'Localização inválida' });
   }
   try {
     await query(
       'UPDATE MESA SET capacidade = ?, localizacao = ? WHERE id_mesa = ?',
-      [capacidade, localizacao, id]
+      [capacidade, localizacao, id_mesa]
     );
-    res.json({ id_mesa: id, capacidade, localizacao });
+    res.json({ id_mesa, capacidade, localizacao });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erro ao atualizar mesa' });
@@ -236,9 +277,9 @@ app.put('/api/mesas/:id', async (req, res) => {
 });
 
 app.delete('/api/mesas/:id', async (req, res) => {
-  const id = req.params.id;
+  const id_mesa = req.params.id;
   try {
-    await query('DELETE FROM MESA WHERE id_mesa = ?', [id]);
+    await query('DELETE FROM MESA WHERE id_mesa = ?', [id_mesa]);
     res.sendStatus(204);
   } catch (err) {
     console.error(err);
@@ -295,6 +336,9 @@ app.post('/api/verificar-disponibilidade', async (req, res) => {
   if (!restauranteId || !horario || numPessoas == null || !localizacao) {
     return res.status(400).json({ message: 'Dados incompletos' });
   }
+  if (!validaLocalizacao(localizacao)) {
+    return res.status(400).json({ message: 'Localização inválida' });
+  }
   const conn = await pool.getConnection();
   try {
     const mesaId = await buscarMesaDisponivel(
@@ -318,6 +362,9 @@ app.post('/api/criar-reserva', async (req, res) => {
   if (!clienteId || !restauranteId || !horario || numPessoas == null || valorTotal == null) {
     return res.status(400).json({ sucesso: false, mensagem: 'Dados incompletos' });
   }
+  if (!validaLocalizacao(localizacao)) {
+    return res.status(400).json({ sucesso: false, mensagem: 'Localização inválida' });
+  }
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
@@ -327,7 +374,7 @@ app.post('/api/criar-reserva', async (req, res) => {
     );
     if (!mesaId) {
       await conn.rollback();
-      return res.json({ sucesso: false, mensagem: 'Mesa indisponível' });
+      return res.status(400).json({ sucesso: false, mensagem: 'Mesa indisponível' });
     }
 
     const [r] = await conn.execute(
@@ -355,11 +402,11 @@ app.post('/api/criar-reserva', async (req, res) => {
 
     if (statusPag === 'FALHA') {
       await conn.rollback();
-      return res.json({ sucesso: false, mensagem: 'Pagamento recusado' });
+      return res.status(402).json({ sucesso: false, mensagem: 'Pagamento recusado' });
     }
 
     await conn.commit();
-    res.json({ sucesso: true, mesaId });
+    res.status(201).json({ sucesso: true, mesaId });
   } catch (err) {
     await conn.rollback();
     console.error(err);
@@ -385,7 +432,7 @@ app.get('/api/reservas', async (req, res) => {
 
 app.put('/api/reservas/:id', async (req, res) => {
   const { horario, numPessoas, preferencia_localizacao, status_pagamento } = req.body;
-  const id = req.params.id;
+  const id_reserva = req.params.id;
   if (!horario && numPessoas == null && !preferencia_localizacao && !status_pagamento) {
     return res.status(400).json({ message: 'Nada para atualizar' });
   }
@@ -397,9 +444,15 @@ app.put('/api/reservas/:id', async (req, res) => {
              preferencia_localizacao = COALESCE(?, preferencia_localizacao),
              status_pagamento = COALESCE(?, status_pagamento)
        WHERE id_reserva = ?`,
-      [horario, numPessoas, preferencia_localizacao, status_pagamento, id]
+      [horario, numPessoas, preferencia_localizacao, status_pagamento, id_reserva]
     );
-    res.json({ id_reserva: id, horario, numPessoas, preferencia_localizacao, status_pagamento });
+    res.json({
+      id_reserva,
+      horario,
+      numPessoas,
+      preferencia_localizacao,
+      status_pagamento
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Erro ao atualizar reserva' });
@@ -407,9 +460,9 @@ app.put('/api/reservas/:id', async (req, res) => {
 });
 
 app.delete('/api/reservas/:id', async (req, res) => {
-  const id = req.params.id;
+  const id_reserva = req.params.id;
   try {
-    await query('DELETE FROM RESERVA WHERE id_reserva = ?', [id]);
+    await query('DELETE FROM RESERVA WHERE id_reserva = ?', [id_reserva]);
     res.sendStatus(204);
   } catch (err) {
     console.error(err);
