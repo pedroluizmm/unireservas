@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+}
+
+group 'com.unireservas'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'mysql:mysql-connector-j:8.0.33'
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+}
+
+sourceCompatibility = JavaVersion.VERSION_21
