@@ -3,11 +3,13 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
+const path = require('path');
 
 dotenv.config(); // carregue variáveis de .env
 
 const app = express();
 app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // cria pool de conexões
 const pool = mysql.createPool({
