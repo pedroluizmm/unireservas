@@ -11,6 +11,9 @@
   .content { display: none; }
   .show { display: block; }
   label { display: block; margin: 5px 0; }
+  .mesas-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+  .mesas-table th, .mesas-table td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
+  .mesa-toggle-btn { background: #008cba; color: #fff; border: none; padding: 4px 8px; cursor: pointer; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -22,7 +25,18 @@
   <h2>Fazer Reserva</h2>
   <label>Cliente ID: <input id="clienteId" /></label>
   <label>Restaurante: <select id="restauranteSelect"></select></label>
-  <label>Horário: <input id="horario" placeholder="18:00" /></label>
+  <label>Horário:
+    <select id="horarioSelect"></select>
+  </label>
+  <div id="mesasSection">
+    <button id="toggleMesasBtn" class="mesa-toggle-btn">▼ Mesas</button>
+    <div id="mesasContainer" style="display:none;">
+      <table class="mesas-table">
+        <thead><tr><th>Número</th><th>Disponível</th><th>Capacidade</th></tr></thead>
+        <tbody id="mesasDisponiveis"></tbody>
+      </table>
+    </div>
+  </div>
   <label>Número de Pessoas: <input id="numPessoas" type="number" min="1" value="1" /></label>
   <label>Localização:
     <select id="localizacao">
@@ -35,49 +49,139 @@
   <button id="reservarBtn">Reservar</button>
   <div id="msg"></div>
 </div>
-<div id="adminContent" class="content">
-  <h2>Restaurantes</h2>
-  <ul id="listaRestaurantes"></ul>
-  <h2>Mesas</h2>
-  <ul id="listaMesas"></ul>
-</div>
+  <div id="adminContent" class="content">
+    <h2>Clientes</h2>
+    <ul id="listaClientes"></ul>
+    <h2>Restaurantes</h2>
+    <ul id="listaRestaurantes"></ul>
+  </div>
 <script>
 const userTab = document.getElementById('userTab');
 const adminTab = document.getElementById('adminTab');
 const userContent = document.getElementById('userContent');
 const adminContent = document.getElementById('adminContent');
 userTab.onclick = () => { userTab.classList.add('active'); adminTab.classList.remove('active'); userContent.classList.add('show'); adminContent.classList.remove('show'); };
-adminTab.onclick = () => { adminTab.classList.add('active'); userTab.classList.remove('active'); adminContent.classList.add('show'); userContent.classList.remove('show'); };
+const mesasContainer = document.getElementById('mesasContainer');
+const toggleMesasBtn = document.getElementById('toggleMesasBtn');
+toggleMesasBtn.onclick = () => {
+  const open = mesasContainer.style.display === 'block';
+  mesasContainer.style.display = open ? 'none' : 'block';
+  toggleMesasBtn.textContent = (open ? '▼' : '▲') + ' Mesas';
+};
+adminTab.onclick = () => {
+  adminTab.classList.add('active');
+  userTab.classList.remove('active');
+  adminContent.classList.add('show');
+  userContent.classList.remove('show');
+  carregarClientes();
+  carregarRestaurantesAdmin();
+};
 async function carregarRestaurantes() {
   const res = await fetch('/api/restaurantes');
   const restaurantes = await res.json();
   const select = document.getElementById('restauranteSelect');
-  const list = document.getElementById('listaRestaurantes');
   select.innerHTML = '';
-  list.innerHTML = '';
   restaurantes.forEach(r => {
     const opt = document.createElement('option');
     opt.value = r.id_restaurante;
     opt.textContent = r.nome;
     select.appendChild(opt);
+  });
+  if (restaurantes.length) atualizarDadosRestaurante(restaurantes[0].id_restaurante);
+}
+
+async function carregarHorarios(id) {
+  const res = await fetch('/api/horarios?restauranteId=' + id);
+  const horarios = await res.json();
+  const select = document.getElementById('horarioSelect');
+  select.innerHTML = '';
+  horarios.forEach(h => {
+    const opt = document.createElement('option');
+    opt.value = h.horario;
+    opt.textContent = h.horario;
+    select.appendChild(opt);
+  });
+}
+
+async function carregarMesasDisponiveis(id) {
+  const horarioSelecionado = document.getElementById("horarioSelect").value;
+  const [mesas, reservas] = await Promise.all([
+    fetch("/api/mesas?restauranteId=" + id).then(r => r.json()),
+    fetch("/api/reservas").then(r => r.json())
+  ]);
+  const tbody = document.getElementById("mesasDisponiveis");
+  tbody.innerHTML = "";
+  if (!mesas.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3;
+    td.textContent = "nenhuma mesa registrada";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+  mesas.forEach(m => {
+    const reservada = reservas.some(r => r.restaurante_id === parseInt(id) && r.mesa_id === m.id_mesa && r.horario === horarioSelecionado && r.status_pagamento === "PAGO");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${m.id_mesa}</td><td>${reservada ? "Não" : "Sim"}</td><td>${m.capacidade}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function atualizarDadosRestaurante(id) {
+  carregarHorarios(id);
+  carregarMesasDisponiveis(id);
+}
+document.getElementById("restauranteSelect").onchange = e => {
+  atualizarDadosRestaurante(e.target.value);
+};
+document.getElementById("horarioSelect").onchange = () => {
+  carregarMesasDisponiveis(document.getElementById("restauranteSelect").value);
+};
+
+async function carregarClientes() {
+  const res = await fetch('/api/clientes');
+  const clientes = await res.json();
+  const list = document.getElementById('listaClientes');
+  list.innerHTML = '';
+  clientes.forEach(c => {
+    const li = document.createElement('li');
+    li.textContent = c.nome + ' - ' + c.email;
+    list.appendChild(li);
+  });
+}
+
+async function carregarRestaurantesAdmin() {
+  const res = await fetch('/api/restaurantes');
+  const restaurantes = await res.json();
+  const list = document.getElementById('listaRestaurantes');
+  list.innerHTML = '';
+  for (const r of restaurantes) {
     const li = document.createElement('li');
     li.textContent = r.nome + ' - ' + r.endereco;
+    const mesas = await (await fetch('/api/mesas?restauranteId=' + r.id_restaurante)).json();
+    const horarios = await (await fetch('/api/horarios?restauranteId=' + r.id_restaurante)).json();
+    const ulMesas = document.createElement('ul');
+    mesas.forEach(m => {
+      const mi = document.createElement('li');
+      mi.textContent = 'Mesa ' + m.id_mesa + ' - Cap ' + m.capacidade + ' - ' + m.localizacao;
+      ulMesas.appendChild(mi);
+    });
+    const ulHor = document.createElement('ul');
+    horarios.forEach(h => {
+      const hi = document.createElement('li');
+      hi.textContent = 'Horário ' + h.horario;
+      ulHor.appendChild(hi);
+    });
+    li.appendChild(ulMesas);
+    li.appendChild(ulHor);
     list.appendChild(li);
-  });
+  }
 }
-async function carregarMesas() {
-  const res = await fetch('/api/mesas');
-  const mesas = await res.json();
-  const list = document.getElementById('listaMesas');
-  list.innerHTML = '';
-  mesas.forEach(m => {
-    const li = document.createElement('li');
-    li.textContent = 'Mesa ' + m.id_mesa + ' - Cap ' + m.capacidade + ' - ' + m.localizacao;
-    list.appendChild(li);
-  });
-}
+
+carregarClientes();
 carregarRestaurantes();
-carregarMesas();
+carregarRestaurantesAdmin();
 const numInput = document.getElementById('numPessoas');
 const locSelect = document.getElementById('localizacao');
 numInput.oninput = calcularValor;
@@ -96,7 +200,7 @@ document.getElementById('reservarBtn').onclick = async () => {
   const data = {
     clienteId: document.getElementById('clienteId').value,
     restauranteId: document.getElementById('restauranteSelect').value,
-    horario: document.getElementById('horario').value,
+    horario: document.getElementById('horarioSelect').value,
     numPessoas: parseInt(numInput.value),
     localizacao: locSelect.value,
     valorTotal,
