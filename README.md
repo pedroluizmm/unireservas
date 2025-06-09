@@ -34,6 +34,7 @@ A aplicação iniciará na porta definida na variável `PORT` e exibirá `Servid
 
 ### Clientes
 - `GET /api/clientes`
+- `GET /api/clientes-disponiveis`
 - `POST /api/clientes` `{ nome, telefone, email }`
 - `PUT /api/clientes/:id` `{ nome, telefone, email }`
 - `DELETE /api/clientes/:id`

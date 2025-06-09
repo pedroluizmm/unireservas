@@ -59,6 +59,19 @@ app.get('/api/clientes', async (req, res) => {
   }
 });
 
+app.get('/api/clientes-disponiveis', async (req, res) => {
+  try {
+    const clientes = await query(
+      `SELECT * FROM CLIENTE WHERE id_cliente NOT IN
+         (SELECT cliente_id FROM RESERVA)`
+    );
+    res.json(clientes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erro ao listar clientes disponíveis' });
+  }
+});
+
 app.post('/api/clientes', async (req, res) => {
   const { nome, telefone, email } = req.body;
   if (!nome || !telefone || !email) {
@@ -371,6 +384,15 @@ app.post('/api/criar-reserva', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
+
+    const [resExist] = await conn.execute(
+      'SELECT 1 FROM RESERVA WHERE cliente_id = ? LIMIT 1',
+      [clienteId]
+    );
+    if (resExist.length) {
+      await conn.rollback();
+      return res.status(400).json({ sucesso: false, mensagem: 'Cliente j\u00e1 possui reserva' });
+    }
 
     const mesaId = await buscarMesaDisponivel(
       restauranteId, horario, numPessoas, localizacao, conn
