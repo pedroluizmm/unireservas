@@ -45,6 +45,22 @@
     <ul id="listaClientes"></ul>
     <h2>Restaurantes</h2>
     <ul id="listaRestaurantes"></ul>
+    <h2>Reservas</h2>
+    <table class="mesas-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Restaurante</th>
+          <th>Mesa</th>
+          <th>Cliente</th>
+          <th>Horário</th>
+          <th>Pessoas</th>
+          <th>Localização</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="listaReservas"></tbody>
+    </table>
   </div>
 
   <script>
@@ -75,6 +91,7 @@
       userContent.classList.remove('show');
       carregarClientes();
       carregarRestaurantesAdmin();
+      carregarReservas();
     };
 
     async function carregarRestaurantes() {
@@ -205,10 +222,36 @@
       }
     }
 
+    async function carregarReservas() {
+      const res = await fetch('/api/reservas');
+      const reservas = await res.json();
+      const tbody = document.getElementById('listaReservas');
+      tbody.innerHTML = '';
+      if (!reservas.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 8;
+        td.textContent = 'nenhuma reserva registrada';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+      reservas.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          `<td>${r.id_reserva}</td><td>${r.restaurante_id}</td><td>${r.mesa_id}</td>` +
+          `<td>${r.cliente_id}</td><td>${r.horario}</td>` +
+          `<td>${r.num_pessoas}</td><td>${r.preferencia_localizacao}</td>` +
+          `<td>${r.status_pagamento}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
     carregarClientes();
     carregarClientesDisponiveis();
     carregarRestaurantes();
     carregarRestaurantesAdmin();
+    carregarReservas();
 
     const numInput = document.getElementById('numPessoas');
     const locSelect = document.getElementById('localizacao');
@@ -261,6 +304,7 @@
       document.getElementById('msg').textContent = result.sucesso ? 'Reserva criada com sucesso!' : result.mensagem;
       if (result.sucesso) {
         carregarClientesDisponiveis();
+        carregarReservas();
       }
     };
   </script>
