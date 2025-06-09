@@ -13,7 +13,7 @@
 
   <div id="userContent" class="content show">
     <h2>Fazer Reserva</h2>
-    <label>Cliente ID: <input id="clienteId" /></label>
+    <label>Cliente: <select id="clienteSelect"></select></label>
     <label>Restaurante: <select id="restauranteSelect"></select></label>
     <label>Horário: <select id="horarioSelect"></select></label>
     <div id="mesasSection">
@@ -148,6 +148,19 @@
       carregarMesasDisponiveis(document.getElementById('restauranteSelect').value);
     };
 
+    async function carregarClientesDisponiveis() {
+      const res = await fetch('/api/clientes-disponiveis');
+      const clientes = await res.json();
+      const select = document.getElementById('clienteSelect');
+      select.innerHTML = '';
+      clientes.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id_cliente;
+        opt.textContent = c.nome;
+        select.appendChild(opt);
+      });
+    }
+
     async function carregarClientes() {
       const res = await fetch('/api/clientes');
       const clientes = await res.json();
@@ -193,6 +206,7 @@
     }
 
     carregarClientes();
+    carregarClientesDisponiveis();
     carregarRestaurantes();
     carregarRestaurantesAdmin();
 
@@ -215,7 +229,7 @@
     document.getElementById('reservarBtn').onclick = async () => {
       const valorTotal = calcularValor();
       const data = {
-        clienteId: document.getElementById('clienteId').value,
+        clienteId: document.getElementById('clienteSelect').value,
         restauranteId: document.getElementById('restauranteSelect').value,
         horario: document.getElementById('horarioSelect').value,
         numPessoas: parseInt(numInput.value),
@@ -245,6 +259,9 @@
       });
       const result = await res.json();
       document.getElementById('msg').textContent = result.sucesso ? 'Reserva criada com sucesso!' : result.mensagem;
+      if (result.sucesso) {
+        carregarClientesDisponiveis();
+      }
     };
   </script>
 </body>

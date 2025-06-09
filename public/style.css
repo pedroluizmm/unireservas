@@ -11,3 +11,4 @@ input, select { padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; ma
 .mesa-toggle-btn, button { background: #008cba; color: #fff; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
 .mesa-toggle-btn:hover, button:hover { background: #0079a1; }
 #mesasContainer { display: none; }
+
