@@ -25,7 +25,6 @@ app.use('/api/reservas', reservaController);
 app.use('/api/pagamentos', pagamentoController);
 
 
-// Rotas legadas usadas pelo frontend estático
 app.get('/api/clientes-disponiveis', async (req, res) => {
   try {
     const data = await clienteService.listarDisponiveis();
