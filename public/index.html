@@ -6,17 +6,30 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="tabs">
-    <div id="userTab" class="tab active">Usuário</div>
-    <div id="adminTab" class="tab">Admin</div>
-  </div>
+  <header class="header">
+    <h1>UniReservas</h1>
+  </header>
+  <main class="container">
+    <div class="tabs">
+      <div id="userTab" class="tab active">Usuário</div>
+      <div id="adminTab" class="tab">Admin</div>
+    </div>
 
   <div id="userContent" class="content show">
     <h2>Fazer Reserva</h2>
-    <label>Cliente: <select id="clienteSelect"></select></label>
-    <label>Restaurante: <select id="restauranteSelect"></select></label>
-    <label>Horário: <select id="horarioSelect"></select></label>
-    <div id="mesasSection">
+    <div class="form-group">
+      <label for="clienteSelect">Cliente</label>
+      <select id="clienteSelect"></select>
+    </div>
+    <div class="form-group">
+      <label for="restauranteSelect">Restaurante</label>
+      <select id="restauranteSelect"></select>
+    </div>
+    <div class="form-group">
+      <label for="horarioSelect">Horário</label>
+      <select id="horarioSelect"></select>
+    </div>
+    <div id="mesasSection" class="form-group">
       <button id="toggleMesasBtn" class="mesa-toggle-btn">▼ Mesas</button>
       <div id="mesasContainer">
         <table class="mesas-table">
@@ -27,16 +40,25 @@
         </table>
       </div>
     </div>
-    <label>Número de Pessoas: <input id="numPessoas" type="number" min="1" value="1" /></label>
-    <label>Localização:
+    <div class="form-group">
+      <label for="numPessoas">Número de Pessoas</label>
+      <input id="numPessoas" type="number" min="1" value="1" />
+    </div>
+    <div class="form-group">
+      <label for="localizacao">Localização</label>
       <select id="localizacao">
         <option value="externa">Externa</option>
         <option value="interna">Interna</option>
       </select>
-    </label>
-    <label>Cartão: <input id="cartao" /></label>
-    <div id="valor">Valor Total: R$0.00</div>
-    <button id="reservarBtn">Reservar</button>
+    </div>
+    <div class="form-group">
+      <label for="cartao">Cartão</label>
+      <input id="cartao" />
+    </div>
+    <div id="valor" class="valor">Valor Total: R$0.00</div>
+    <div class="form-actions">
+      <button id="reservarBtn">Reservar</button>
+    </div>
     <div id="msg" class="notification"></div>
   </div>
 
@@ -63,6 +85,7 @@
     </table>
   </div>
 
+  </main>
   <script>
     const userTab = document.getElementById('userTab');
     const adminTab = document.getElementById('adminTab');
