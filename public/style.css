@@ -1,0 +1,31 @@
+body { font-family: Arial, sans-serif; margin: 20px; }
+.tabs { display: flex; margin-bottom: 10px; }
+.tab { margin-right: 10px; padding: 5px 10px; border: 1px solid #ccc; cursor: pointer; border-radius: 4px 4px 0 0; background: #f9f9f9; }
+.active { background: #eee; }
+.content { display: none; border: 1px solid #ccc; border-radius: 0 4px 4px 4px; padding: 10px; }
+.show { display: block; }
+label { display: block; margin: 8px 0 4px; font-weight: bold; }
+input, select { padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 8px; box-sizing: border-box; }
+.mesas-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+.mesas-table th, .mesas-table td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
+.mesa-toggle-btn, button { background: #008cba; color: #fff; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
+.mesa-toggle-btn:hover, button:hover { background: #0079a1; }
+#mesasContainer { display: none; }
+
+.notification {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  display: none;
+}
+.notification.success {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+.notification.error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+

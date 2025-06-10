@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>UniReservas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="tabs">
+    <div id="userTab" class="tab active">Usuário</div>
+    <div id="adminTab" class="tab">Admin</div>
+  </div>
+
+  <div id="userContent" class="content show">
+    <h2>Fazer Reserva</h2>
+    <label>Cliente: <select id="clienteSelect"></select></label>
+    <label>Restaurante: <select id="restauranteSelect"></select></label>
+    <label>Horário: <select id="horarioSelect"></select></label>
+    <div id="mesasSection">
+      <button id="toggleMesasBtn" class="mesa-toggle-btn">▼ Mesas</button>
+      <div id="mesasContainer">
+        <table class="mesas-table">
+          <thead>
+            <tr><th>Número</th><th>Disponível</th><th>Capacidade</th><th>Localização</th></tr>
+          </thead>
+          <tbody id="mesasDisponiveis"></tbody>
+        </table>
+      </div>
+    </div>
+    <label>Número de Pessoas: <input id="numPessoas" type="number" min="1" value="1" /></label>
+    <label>Localização:
+      <select id="localizacao">
+        <option value="externa">Externa</option>
+        <option value="interna">Interna</option>
+      </select>
+    </label>
+    <label>Cartão: <input id="cartao" /></label>
+    <div id="valor">Valor Total: R$0.00</div>
+    <button id="reservarBtn">Reservar</button>
+    <div id="msg" class="notification"></div>
+  </div>
+
+  <div id="adminContent" class="content">
+    <h2>Clientes</h2>
+    <ul id="listaClientes"></ul>
+    <h2>Restaurantes</h2>
+    <ul id="listaRestaurantes"></ul>
+    <h2>Reservas</h2>
+    <table class="mesas-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Restaurante</th>
+          <th>Mesa</th>
+          <th>Cliente</th>
+          <th>Horário</th>
+          <th>Pessoas</th>
+          <th>Localização</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="listaReservas"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const userTab = document.getElementById('userTab');
+    const adminTab = document.getElementById('adminTab');
+    const userContent = document.getElementById('userContent');
+    const adminContent = document.getElementById('adminContent');
+    const mesasContainer = document.getElementById('mesasContainer');
+    const toggleMesasBtn = document.getElementById('toggleMesasBtn');
+    const msgDiv = document.getElementById('msg');
+
+    function showMessage(text, type = 'success') {
+      msgDiv.textContent = text;
+      msgDiv.classList.remove('success', 'error');
+      msgDiv.classList.add(type);
+      msgDiv.style.display = 'block';
+      setTimeout(() => { msgDiv.style.display = 'none'; }, 3000);
+    }
+
+    userTab.onclick = () => {
+      userTab.classList.add('active');
+      adminTab.classList.remove('active');
+      userContent.classList.add('show');
+      adminContent.classList.remove('show');
+    };
+
+    toggleMesasBtn.onclick = () => {
+      const open = mesasContainer.style.display === 'block';
+      mesasContainer.style.display = open ? 'none' : 'block';
+      toggleMesasBtn.textContent = (open ? '▼' : '▲') + ' Mesas';
+    };
+
+    adminTab.onclick = () => {
+      adminTab.classList.add('active');
+      userTab.classList.remove('active');
+      adminContent.classList.add('show');
+      userContent.classList.remove('show');
+      carregarClientes();
+      carregarRestaurantesAdmin();
+      carregarReservas();
+    };
+
+    async function carregarRestaurantes() {
+      const res = await fetch('/api/restaurantes');
+      const restaurantes = await res.json();
+      const select = document.getElementById('restauranteSelect');
+      select.innerHTML = '';
+      restaurantes.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.id_restaurante;
+        opt.textContent = r.nome;
+        select.appendChild(opt);
+      });
+      if (restaurantes.length) {
+        atualizarDadosRestaurante(restaurantes[0].id_restaurante);
+      }
+    }
+
+    async function carregarHorarios(id) {
+      const res = await fetch(`/api/horarios?restauranteId=${id}`);
+      const horarios = await res.json();
+      const select = document.getElementById('horarioSelect');
+      select.innerHTML = '';
+      horarios.forEach(h => {
+        const opt = document.createElement('option');
+        opt.value = h.horario;
+        opt.textContent = h.horario;
+        select.appendChild(opt);
+      });
+    }
+
+    async function carregarMesasDisponiveis(id) {
+      const horarioSelecionado = document.getElementById('horarioSelect').value;
+      const [mesas, reservas] = await Promise.all([
+        fetch(`/api/mesas?restauranteId=${id}`).then(r => r.json()),
+        fetch('/api/reservas').then(r => r.json())
+      ]);
+      const tbody = document.getElementById('mesasDisponiveis');
+      tbody.innerHTML = '';
+      if (!mesas.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4;
+        td.textContent = 'nenhuma mesa registrada';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+      mesas.forEach(m => {
+        const reservada = reservas.some(r =>
+          r.restaurante_id === parseInt(id) &&
+          r.mesa_id === m.id_mesa &&
+          r.horario === horarioSelecionado &&
+          r.status_pagamento === 'PAGO'
+        );
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${m.id_mesa}</td><td>${reservada ? 'Não' : 'Sim'}</td><td>${m.capacidade}</td><td>${m.localizacao}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function atualizarDadosRestaurante(id) {
+      carregarHorarios(id);
+      carregarMesasDisponiveis(id);
+    }
+
+    document.getElementById('restauranteSelect').onchange = e => {
+      atualizarDadosRestaurante(e.target.value);
+    };
+    document.getElementById('horarioSelect').onchange = () => {
+      carregarMesasDisponiveis(document.getElementById('restauranteSelect').value);
+    };
+
+    async function carregarClientesDisponiveis() {
+      const res = await fetch('/api/clientes-disponiveis');
+      const clientes = await res.json();
+      const select = document.getElementById('clienteSelect');
+      select.innerHTML = '';
+      clientes.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id_cliente;
+        opt.textContent = c.nome;
+        select.appendChild(opt);
+      });
+    }
+
+    async function carregarClientes() {
+      const res = await fetch('/api/clientes');
+      const clientes = await res.json();
+      const list = document.getElementById('listaClientes');
+      list.innerHTML = '';
+      clientes.forEach(c => {
+        const li = document.createElement('li');
+        li.textContent = `${c.nome} - ${c.email}`;
+        list.appendChild(li);
+      });
+    }
+
+    async function carregarRestaurantesAdmin() {
+      const res = await fetch('/api/restaurantes');
+      const restaurantes = await res.json();
+      const list = document.getElementById('listaRestaurantes');
+      list.innerHTML = '';
+      for (const r of restaurantes) {
+        const li = document.createElement('li');
+        li.textContent = `${r.nome} - ${r.endereco}`;
+
+        const mesas = await (await fetch(`/api/mesas?restauranteId=${r.id_restaurante}`)).json();
+        const horarios = await (await fetch(`/api/horarios?restauranteId=${r.id_restaurante}`)).json();
+
+        const ulMesas = document.createElement('ul');
+        mesas.forEach(m => {
+          const mi = document.createElement('li');
+          mi.textContent = `Mesa ${m.id_mesa} - Cap ${m.capacidade} - ${m.localizacao}`;
+          ulMesas.appendChild(mi);
+        });
+
+        const ulHor = document.createElement('ul');
+        horarios.forEach(h => {
+          const hi = document.createElement('li');
+          hi.textContent = `Horário ${h.horario}`;
+          ulHor.appendChild(hi);
+        });
+
+        li.appendChild(ulMesas);
+        li.appendChild(ulHor);
+        list.appendChild(li);
+      }
+    }
+
+    async function carregarReservas() {
+      const res = await fetch('/api/reservas');
+      const reservas = await res.json();
+      const tbody = document.getElementById('listaReservas');
+      tbody.innerHTML = '';
+      if (!reservas.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 8;
+        td.textContent = 'nenhuma reserva registrada';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+      reservas.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          `<td>${r.id_reserva}</td><td>${r.restaurante_id}</td><td>${r.mesa_id}</td>` +
+          `<td>${r.cliente_id}</td><td>${r.horario}</td>` +
+          `<td>${r.num_pessoas}</td><td>${r.preferencia_localizacao}</td>` +
+          `<td>${r.status_pagamento}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    carregarClientes();
+    carregarClientesDisponiveis();
+    carregarRestaurantes();
+    carregarRestaurantesAdmin();
+    carregarReservas();
+
+    const numInput = document.getElementById('numPessoas');
+    const locSelect = document.getElementById('localizacao');
+    numInput.oninput = calcularValor;
+    locSelect.onchange = calcularValor;
+
+    function calcularValor() {
+      const num = parseInt(numInput.value) || 0;
+      let valor = num * 50;
+      if (num > 6) valor *= 1.1;
+      if (locSelect.value === 'interna') valor *= 1.2;
+      document.getElementById('valor').textContent = `Valor Total: R$${valor.toFixed(2)}`;
+      return valor;
+    }
+
+    calcularValor();
+
+    document.getElementById('reservarBtn').onclick = async () => {
+      const valorTotal = calcularValor();
+      const data = {
+        clienteId: document.getElementById('clienteSelect').value,
+        restauranteId: document.getElementById('restauranteSelect').value,
+        horario: document.getElementById('horarioSelect').value,
+        numPessoas: parseInt(numInput.value),
+        localizacao: locSelect.value,
+        valorTotal,
+        cartaoNumero: document.getElementById('cartao').value
+      };
+
+      try {
+        const dispRes = await fetch('/api/reservas/verificar-disponibilidade', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            restauranteId: data.restauranteId,
+            horario: data.horario,
+            numPessoas: data.numPessoas,
+            localizacao: data.localizacao
+          })
+        });
+        if (!dispRes.ok) {
+          const err = await dispRes.json().catch(() => ({}));
+          showMessage(err.message || 'Erro ao verificar disponibilidade', 'error');
+          return;
+        }
+        const disp = await dispRes.json();
+        if (!disp.disponivel) {
+          showMessage('Mesa indisponível', 'error');
+          return;
+        }
+
+        const res = await fetch('/api/reservas/criar-reserva', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          showMessage(err.message || 'Erro ao criar reserva', 'error');
+          return;
+        }
+        const result = await res.json();
+        showMessage(
+          result.sucesso ? 'Reserva criada com sucesso!' : result.mensagem,
+          result.sucesso ? 'success' : 'error'
+        );
+        if (result.sucesso) {
+          carregarClientesDisponiveis();
+          carregarReservas();
+        }
+      } catch (e) {
+        console.error(e);
+        showMessage('Falha na comunicação com o servidor', 'error');
+      }
+    };
+  </script>
+</body>
+</html>
