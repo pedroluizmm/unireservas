@@ -291,7 +291,7 @@
       };
 
       try {
-        const dispRes = await fetch('/api/verificar-disponibilidade', {
+        const dispRes = await fetch('/api/reservas/verificar-disponibilidade', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -312,7 +312,7 @@
           return;
         }
 
-        const res = await fetch('/api/criar-reserva', {
+        const res = await fetch('/api/reservas/criar-reserva', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
