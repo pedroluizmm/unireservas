@@ -233,3 +233,22 @@ document.getElementById('horarioNext').addEventListener('click', () => {
 
 document.getElementById('backPagamento').addEventListener('click', () => showStep(2));
 document.getElementById('confirmarReserva').addEventListener('click', confirmarReserva);
+
+document.getElementById('adminBtn').addEventListener('click', async () => {
+    const pwd = prompt('Senha do administrador:');
+    if (!pwd) return;
+    try {
+        const res = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: pwd })
+        });
+        if (res.ok) {
+            window.location.href = 'admin.html';
+        } else {
+            toast('Senha incorreta');
+        }
+    } catch (e) {
+        toast('Erro ao autenticar');
+    }
+});
