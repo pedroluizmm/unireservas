@@ -115,7 +115,7 @@ async function carregarLayout() {
             group.forEach(m => {
                 const btn = document.createElement('button');
                 btn.className = 'table-btn available';
-                btn.title = `Número ${m.id_mesa}`;
+                btn.title = `Número da Mesa ${m.id_mesa} & Capacidade ${m.capacidade}`;
                 btn.textContent = m.capacidade;
                 btn.style.color = 'black';
                 btn.addEventListener('click', () => {
