@@ -45,6 +45,14 @@ app.get('/api/horarios', async (req, res) => {
   }
 });
 
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (password === process.env.DB_PASSWORD) {
+    return res.json({ success: true });
+  }
+  res.status(401).json({ success: false });
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
