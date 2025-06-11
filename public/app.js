@@ -117,6 +117,7 @@ async function carregarLayout() {
                 btn.className = 'table-btn available';
                 btn.title = `Número ${m.id_mesa}`;
                 btn.textContent = m.capacidade;
+                btn.style.color = 'black';
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.table-btn').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
