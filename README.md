@@ -59,6 +59,9 @@ A aplicação iniciará na porta definida na variável `PORT` e exibirá `Servid
 - `PUT /api/reservas/:id` `{ horario?, numPessoas?, preferenciaLocalizacao?, statusPagamento? }`
 - `DELETE /api/reservas/:id`
 - `GET /api/pagamentos`
+- `POST /api/pagamentos` `{ reservaId, valor, metodo?, status? }`
+- `PUT /api/pagamentos/:id` `{ reservaId?, valor?, metodo?, status? }`
+- `DELETE /api/pagamentos/:id`
 
 ### Exemplo de Pagamento
 O pagamento é simulado. Cartões que começam com `4` são aprovados; qualquer outro número resulta em falha e a transação é revertida.

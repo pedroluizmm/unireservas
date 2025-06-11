@@ -285,6 +285,57 @@ async function deleteReserva(row) {
     }
 }
 
+async function addPagamento() {
+    const reservaId = prompt('ID da reserva:');
+    if (!reservaId) return;
+    const valor = prompt('Valor:');
+    if (!valor) return;
+    const metodo = prompt('Método:', 'CARTAO');
+    if (!metodo) return;
+    const status = prompt('Status:', 'PENDENTE');
+    if (!status) return;
+    try {
+        await fetchJSON('/api/pagamentos', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reservaId, valor, metodo, status })
+        });
+        toast('Pagamento criado');
+        init();
+    } catch (e) {
+        toast('Erro ao criar pagamento');
+    }
+}
+
+async function editPagamento(row) {
+    const reservaId = prompt('ID da reserva:', row.reserva_id);
+    const valor = prompt('Valor:', row.valor);
+    const metodo = prompt('Método:', row.metodo);
+    const status = prompt('Status:', row.status);
+    try {
+        await fetchJSON(`/api/pagamentos/${row.id_pagamento}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reservaId, valor, metodo, status })
+        });
+        toast('Pagamento atualizado');
+        init();
+    } catch (e) {
+        toast('Erro ao atualizar pagamento');
+    }
+}
+
+async function deletePagamento(row) {
+    if (!confirm('Excluir pagamento?')) return;
+    try {
+        await fetchJSON(`/api/pagamentos/${row.id_pagamento}`, { method: 'DELETE' });
+        toast('Pagamento removido');
+        init();
+    } catch (e) {
+        toast('Erro ao remover pagamento');
+    }
+}
+
 async function renderClientes(container) {
     const data = await fetchJSON('/api/clientes');
     container.appendChild(buildTable(data, {
@@ -327,7 +378,12 @@ async function renderReservas(container) {
 
 async function renderPagamentos(container) {
     const data = await fetchJSON('/api/pagamentos');
-    container.appendChild(buildTable(data, { title: 'Pagamentos' }));
+    container.appendChild(buildTable(data, {
+        title: 'Pagamentos',
+        onAdd: addPagamento,
+        onEdit: editPagamento,
+        onDelete: deletePagamento
+    }));
 }
 
 async function init() {
