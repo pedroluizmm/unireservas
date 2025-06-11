@@ -6,6 +6,14 @@ function validaLocalizacao(loc) {
 
 class MesaService {
   async listar(restauranteId) {
+    if (restauranteId === undefined) {
+      // sem restauranteId - retorna todas as mesas (usado na tela de admin)
+      return mesaDAO.listar();
+    }
+    if (restauranteId === null || restauranteId === '') {
+      // restauranteId informado mas vazio ou nulo -> sem registros
+      return [];
+    }
     return mesaDAO.listar(restauranteId);
   }
 
