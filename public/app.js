@@ -82,12 +82,13 @@ async function carregarHorarios() {
 
 async function carregarLayout() {
     selectedHorario = document.getElementById('horarioSelect').value;
+    const map = document.getElementById('layout-map');
+    map.innerHTML = '';
+    selectedMesa = null;
     if (!selectedHorario) return;
     try {
         const res = await fetch(`/api/mesas?restauranteId=${selectedRestaurante.id_restaurante}`);
         mesas = await res.json();
-        const map = document.getElementById('layout-map');
-        map.innerHTML = '';
         const areas = { interna: [], externa: [] };
         for (const m of mesas) {
             try {
