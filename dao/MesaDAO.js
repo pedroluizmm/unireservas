@@ -2,10 +2,15 @@ const { query, pool } = require('../config/database');
 
 class MesaDAO {
   async listar(restauranteId) {
-    if (restauranteId) {
-      return query('SELECT * FROM MESA WHERE restaurante_id = ?', [restauranteId]);
+    if (restauranteId === undefined) {
+      // sem filtro: retorna todas as mesas
+      return query('SELECT * FROM MESA');
     }
-    return query('SELECT * FROM MESA');
+    if (restauranteId === null || restauranteId === '') {
+      // parametro informado mas vazio -> nenhum resultado
+      return [];
+    }
+    return query('SELECT * FROM MESA WHERE restaurante_id = ?', [restauranteId]);
   }
 
   async inserir(restauranteId, capacidade, localizacao) {
