@@ -32,6 +32,13 @@ app.get('/api/clientes-disponiveis', async (req, res) => {
     res.status(500).json({ message: 'Erro ao listar clientes disponíveis' });
   }
 });
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (password === process.env.DB_PASSWORD) {
+    return res.json({ success: true });
+  }
+  res.status(401).json({ success: false });
+});
 
 app.get('/api/horarios', async (req, res) => {
   try {
