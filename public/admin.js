@@ -396,4 +396,8 @@ async function init() {
     await renderPagamentos(c);
 }
 
+document.getElementById('backBtn').addEventListener('click', () => {
+    window.location.href = 'index.html';
+});
+
 init();
