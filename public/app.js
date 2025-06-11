@@ -22,6 +22,21 @@ function toast(msg) {
     setTimeout(() => { t.style.display = 'none'; }, 3000);
 }
 
+function resetHorarioState() {
+    selectedHorario = null;
+    selectedMesa = null;
+    const sel = document.getElementById('horarioSelect');
+    if (sel) {
+        sel.innerHTML = '<option value="">Selecione...</option>';
+    }
+    const map = document.getElementById('layout-map');
+    if (map) {
+        map.innerHTML = '';
+    }
+    const next = document.getElementById('horarioNext');
+    if (next) next.disabled = true;
+}
+
 async function carregarClientes() {
     try {
         const res = await fetch('/api/clientes-disponiveis');
@@ -64,6 +79,7 @@ async function carregarRestaurantes() {
 
 async function carregarHorarios() {
     if (!selectedRestaurante) return;
+    resetHorarioState();
     try {
         const res = await fetch(`/api/horarios?restauranteId=${selectedRestaurante.id_restaurante}`);
         const horarios = await res.json();
@@ -218,11 +234,15 @@ document.getElementById('clienteNext').addEventListener('click', () => {
 
 document.getElementById('backRestaurante').addEventListener('click', () => showStep(0));
 document.getElementById('restauranteNext').addEventListener('click', () => {
+    resetHorarioState();
     showStep(2);
     carregarHorarios();
 });
 
-document.getElementById('backHorario').addEventListener('click', () => showStep(1));
+document.getElementById('backHorario').addEventListener('click', () => {
+    resetHorarioState();
+    showStep(1);
+});
 document.getElementById('horarioSelect').addEventListener('change', () => {
     document.getElementById('horarioNext').disabled = true;
     carregarLayout();
