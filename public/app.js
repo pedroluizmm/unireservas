@@ -180,7 +180,7 @@ document.getElementById('clienteSelect').addEventListener('change', e => {
 
 document.getElementById('toggleNovoCliente').addEventListener('click', () => {
     const form = document.getElementById('cliente-form');
-    form.style.display = form.style.display === 'block' ? 'none' : 'block';
+    form.classList.toggle('show');
 });
 
 document.getElementById('salvarCliente').addEventListener('click', async () => {
@@ -200,7 +200,7 @@ document.getElementById('salvarCliente').addEventListener('click', async () => {
             document.getElementById('clienteSelect').value = c.id_cliente;
             selectedCliente = c;
             document.getElementById('clienteNext').disabled = false;
-            document.getElementById('cliente-form').style.display = 'none';
+            document.getElementById('cliente-form').classList.remove('show');
         } else {
             toast(c.message || 'Erro ao cadastrar');
         }
