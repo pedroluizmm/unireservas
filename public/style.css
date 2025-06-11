@@ -89,7 +89,6 @@ body {
   font-size: 14px;
 }
 
-.mesa-toggle-btn,
 button {
   background: var(--primary);
   color: #fff;
@@ -100,7 +99,6 @@ button {
   transition: background 0.2s;
 }
 
-.mesa-toggle-btn:hover,
 button:hover {
   background: var(--primary-dark);
 }
@@ -153,5 +151,58 @@ button:hover {
 
 .form-actions {
   margin-top: 20px;
+}
+
+.step {
+  display: none;
+}
+
+.step.active {
+  display: block;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.restaurante-card {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px;
+  cursor: pointer;
+  width: calc(50% - 10px);
+  background: var(--card-bg);
+}
+
+.restaurante-card.selected {
+  background: var(--light-bg);
+  border-color: var(--primary);
+}
+
+.area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.mesa-btn {
+  border: 1px solid var(--border-color);
+  background: #f0f0f0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.mesa-btn.selected {
+  background: var(--primary);
+  color: #fff;
+}
+
+.novo-cliente {
+  margin-top: 10px;
+  display: none;
 }
 
