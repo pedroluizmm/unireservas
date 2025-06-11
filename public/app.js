@@ -99,9 +99,9 @@ async function carregarLayout() {
                 const disp = await dispRes.json();
                 if (!disp.disponivel) continue;
                 areas[m.localizacao].push(m);
-            } catch (_) {}
+            } catch (_) { }
         }
-        ['interna','externa'].forEach(loc => {
+        ['interna', 'externa'].forEach(loc => {
             const group = areas[loc];
             if (!group.length) return;
             const wrapper = document.createElement('div');
@@ -115,8 +115,8 @@ async function carregarLayout() {
             group.forEach(m => {
                 const btn = document.createElement('button');
                 btn.className = 'table-btn available';
-                btn.title = `Capacidade ${m.capacidade}`;
-                btn.textContent = m.id_mesa;
+                btn.title = `Número ${m.id_mesa}`;
+                btn.textContent = m.capacidade;
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.table-btn').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
