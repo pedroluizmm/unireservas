@@ -10,25 +10,29 @@ class ReservaService {
     return reservaDAO.listar();
   }
 
-  async verificarDisponibilidade({ restauranteId, horario, numPessoas, localizacao }) {
-    if (!restauranteId || !horario || numPessoas == null || !localizacao) {
+  async verificarDisponibilidade({ restauranteId, horario, numPessoas, localizacao, mesaId }) {
+    if (!restauranteId || !horario || numPessoas == null) {
       throw new Error('Dados incompletos');
     }
-    if (!validaLocalizacao(localizacao)) throw new Error('Localização inválida');
     const conn = await pool.getConnection();
     try {
-      const mesaId = await reservaDAO.buscarMesaDisponivel(restauranteId, horario, numPessoas, localizacao, conn);
-      return { disponivel: !!mesaId, mesaId };
+      if (mesaId) {
+        const ok = await reservaDAO.verificarMesaDisponivel(mesaId, restauranteId, horario, numPessoas, conn);
+        return { disponivel: ok, mesaId: ok ? mesaId : null };
+      }
+      if (!localizacao) throw new Error('localizacao é obrigatória');
+      if (!validaLocalizacao(localizacao)) throw new Error('Localização inválida');
+      const mId = await reservaDAO.buscarMesaDisponivel(restauranteId, horario, numPessoas, localizacao, conn);
+      return { disponivel: !!mId, mesaId: mId };
     } finally {
       conn.release();
     }
   }
 
-  async criarReserva({ clienteId, restauranteId, horario, numPessoas, localizacao, valorTotal, cartaoNumero }) {
+  async criarReserva({ clienteId, restauranteId, horario, numPessoas, localizacao, valorTotal, cartaoNumero, mesaId }) {
     if (!clienteId || !restauranteId || !horario || numPessoas == null || valorTotal == null) {
       throw new Error('Dados incompletos');
     }
-    if (!validaLocalizacao(localizacao)) throw new Error('Localização inválida');
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
@@ -37,12 +41,25 @@ class ReservaService {
         await conn.rollback();
         return { sucesso: false, mensagem: 'Cliente já possui reserva' };
       }
-      const mesaId = await reservaDAO.buscarMesaDisponivel(restauranteId, horario, numPessoas, localizacao, conn);
-      if (!mesaId) {
-        await conn.rollback();
-        return { sucesso: false, mensagem: 'Mesa indisponível' };
+      let mesa = mesaId;
+      if (mesa) {
+        const disponivel = await reservaDAO.verificarMesaDisponivel(mesa, restauranteId, horario, numPessoas, conn);
+        if (!disponivel) {
+          await conn.rollback();
+          return { sucesso: false, mensagem: 'Mesa indisponível' };
+        }
+        const [locRow] = await conn.execute('SELECT localizacao FROM MESA WHERE id_mesa = ?', [mesa]);
+        localizacao = locRow[0].localizacao;
+      } else {
+        if (!localizacao) throw new Error('Localização obrigatória');
+        if (!validaLocalizacao(localizacao)) throw new Error('Localização inválida');
+        mesa = await reservaDAO.buscarMesaDisponivel(restauranteId, horario, numPessoas, localizacao, conn);
+        if (!mesa) {
+          await conn.rollback();
+          return { sucesso: false, mensagem: 'Mesa indisponível' };
+        }
       }
-      const reservaId = await reservaDAO.inserirReserva({ restauranteId, mesaId, clienteId, horario, numPessoas, localizacao, valorTotal }, conn);
+      const reservaId = await reservaDAO.inserirReserva({ restauranteId, mesaId: mesa, clienteId, horario, numPessoas, localizacao, valorTotal }, conn);
       const statusPag = cartaoNumero.startsWith('4') ? 'APROVADO' : 'FALHA';
       await reservaDAO.inserirPagamento(reservaId, valorTotal, statusPag, conn);
       const novoStatus = statusPag === 'APROVADO' ? 'PAGO' : 'FALHA';
@@ -52,7 +69,7 @@ class ReservaService {
         return { sucesso: false, mensagem: 'Pagamento recusado' };
       }
       await conn.commit();
-      return { sucesso: true, mesaId };
+      return { sucesso: true, mesaId: mesa };
     } catch (err) {
       await conn.rollback();
       throw err;

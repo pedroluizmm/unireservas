@@ -48,6 +48,22 @@ class ReservaDAO {
     );
     return rows.length ? rows[0].id_mesa : null;
   }
+
+  async verificarMesaDisponivel(mesaId, restauranteId, horario, numPessoas, conn) {
+    const [rows] = await conn.execute(
+      `SELECT 1
+         FROM MESA m
+        WHERE m.id_mesa = ?
+          AND m.restaurante_id = ?
+          AND m.capacidade >= ?
+          AND m.id_mesa NOT IN (
+            SELECT mesa_id FROM RESERVA
+             WHERE restaurante_id = ? AND horario = ? AND status_pagamento = 'PAGO'
+          )`,
+      [mesaId, restauranteId, numPessoas, restauranteId, horario]
+    );
+    return rows.length > 0;
+  }
 }
 
 module.exports = new ReservaDAO();

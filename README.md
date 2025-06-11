@@ -53,8 +53,8 @@ A aplicação iniciará na porta definida na variável `PORT` e exibirá `Servid
 - `DELETE /api/mesas/:id`
 
 ### Reservas
-- `POST /api/verificar-disponibilidade` `{ restauranteId, horario, numPessoas, localizacao }`
-- `POST /api/criar-reserva` `{ clienteId, restauranteId, horario, numPessoas, localizacao, valorTotal, cartaoNumero }`
+- `POST /api/verificar-disponibilidade` `{ restauranteId, horario, numPessoas, localizacao?, mesaId? }`
+- `POST /api/criar-reserva` `{ clienteId, restauranteId, horario, numPessoas, localizacao?, valorTotal, cartaoNumero, mesaId? }`
 - `GET /api/reservas`
 - `PUT /api/reservas/:id` `{ horario?, numPessoas?, preferenciaLocalizacao?, statusPagamento? }`
 - `DELETE /api/reservas/:id`
