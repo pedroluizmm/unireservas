@@ -1,419 +1,71 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>UniReservas</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>UniReservas</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="header">
-    <h1>UniReservas</h1>
-  </header>
-  <main class="container">
-    <div class="tabs">
-      <div id="userTab" class="tab active">Usuário</div>
-      <div id="adminTab" class="tab">Admin</div>
-    </div>
-
-    <div id="userContent" class="content show">
-      <h2>Fazer Reserva</h2>
-      <div id="steps">
-        <section id="step1" class="step active">
-          <h3>1. Cliente</h3>
-          <div class="form-group">
-            <label for="clienteSelect">Escolha o cliente</label>
-            <select id="clienteSelect"></select>
-          </div>
-          <button id="btnNovoCliente">Novo Cliente</button>
-          <div id="novoClienteForm" class="novo-cliente">
-            <input id="novoNome" placeholder="Nome" />
-            <input id="novoTelefone" placeholder="Telefone" />
-            <input id="novoEmail" placeholder="Email" />
-            <button id="cadastrarClienteBtn">Cadastrar</button>
-          </div>
-          <div class="form-actions">
-            <button id="step1Next">Próximo</button>
-          </div>
+    <header class="page-header">
+        <h1>UniReservas</h1>
+    </header>
+    <div id="progress" class="progress">Etapa 1 de 4</div>
+    <main class="steps">
+        <section id="step-cliente" class="step active">
+            <h2>Cliente</h2>
+            <div class="field">
+                <label for="clienteSelect">Selecione o cliente</label>
+                <select id="clienteSelect"></select>
+            </div>
+            <button id="toggleNovoCliente">Cadastrar Novo Cliente</button>
+            <div id="cliente-form" class="novo-cliente">
+                <input id="novoNome" placeholder="Nome" type="text">
+                <input id="novoTelefone" placeholder="Telefone" type="text">
+                <input id="novoEmail" placeholder="Email" type="email">
+                <button id="salvarCliente">Cadastrar</button>
+            </div>
+            <div class="actions">
+                <button id="clienteNext" disabled>Próximo</button>
+            </div>
         </section>
 
-        <section id="step2" class="step">
-          <h3>2. Restaurante</h3>
-          <div id="restauranteCards" class="cards"></div>
-          <div class="form-actions">
-            <button id="step2Back">Voltar</button>
-            <button id="step2Next" disabled>Próximo</button>
-          </div>
+        <section id="step-restaurante" class="step">
+            <h2>Restaurante</h2>
+            <div id="restauranteGrid" class="grid"></div>
+            <div class="actions">
+                <button id="backRestaurante">Voltar</button>
+                <button id="restauranteNext" disabled>Próximo</button>
+            </div>
         </section>
 
-        <section id="step3" class="step">
-          <h3>3. Horário e Pessoas</h3>
-          <div class="form-group">
-            <label for="horarioSelect">Horário</label>
-            <select id="horarioSelect"></select>
-          </div>
-          <div class="form-group">
-            <label for="numPessoas">Número de Pessoas</label>
-            <input id="numPessoas" type="number" min="1" value="1" />
-          </div>
-          <div class="form-actions">
-            <button id="step3Back">Voltar</button>
-            <button id="step3Next">Próximo</button>
-          </div>
+        <section id="step-horario" class="step">
+            <h2>Horários &amp; Layout</h2>
+            <div class="field">
+                <label for="horarioSelect">Horário</label>
+                <select id="horarioSelect"></select>
+            </div>
+            <div id="layout-map"></div>
+            <div class="actions">
+                <button id="backHorario">Voltar</button>
+                <button id="horarioNext" disabled>Próximo</button>
+            </div>
         </section>
 
-        <section id="step4" class="step">
-          <h3>4. Escolha a Mesa</h3>
-          <div id="layoutRestaurante">
-            <h4>Área Interna</h4>
-            <div id="areaInterna" class="area"></div>
-            <h4>Área Externa</h4>
-            <div id="areaExterna" class="area"></div>
-          </div>
-          <div class="form-actions">
-            <button id="step4Back">Voltar</button>
-            <button id="step4Next" disabled>Próximo</button>
-          </div>
+        <section id="step-pagamento" class="step">
+            <h2>Pagamento</h2>
+            <div id="resumo" class="resumo"></div>
+            <div class="field">
+                <label for="cartao">Número do Cartão</label>
+                <input id="cartao" type="text" maxlength="19">
+            </div>
+            <div class="actions">
+                <button id="backPagamento">Voltar</button>
+                <button id="confirmarReserva">Confirmar Reserva</button>
+            </div>
         </section>
+    </main>
 
-        <section id="step5" class="step">
-          <h3>5. Pagamento</h3>
-          <div class="form-group">
-            <label for="cartao">Número do Cartão</label>
-            <input id="cartao" />
-          </div>
-          <div class="valor" id="valor">Valor Total: R$0.00</div>
-          <div class="form-actions">
-            <button id="step5Back">Voltar</button>
-            <button id="confirmarBtn">Confirmar Reserva</button>
-          </div>
-        </section>
-      </div>
-      <div id="msg" class="notification"></div>
-    </div>
-
-    <div id="adminContent" class="content">
-      <h2>Clientes</h2>
-      <ul id="listaClientes"></ul>
-      <h2>Restaurantes</h2>
-      <ul id="listaRestaurantes"></ul>
-      <h2>Reservas</h2>
-      <table class="mesas-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Restaurante</th>
-            <th>Mesa</th>
-            <th>Cliente</th>
-            <th>Horário</th>
-            <th>Pessoas</th>
-            <th>Localização</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="listaReservas"></tbody>
-      </table>
-    </div>
-  </main>
-  <script>
-    const steps = ['step1','step2','step3','step4','step5'];
-    let currentStep = 0;
-    let selectedRestaurante = null;
-    let selectedHorario = null;
-    let selectedMesa = null;
-    let mesaLocalizacao = null;
-
-    const userTab = document.getElementById('userTab');
-    const adminTab = document.getElementById('adminTab');
-    const userContent = document.getElementById('userContent');
-    const adminContent = document.getElementById('adminContent');
-    const msgDiv = document.getElementById('msg');
-
-    function showMessage(text, type = 'success') {
-      msgDiv.textContent = text;
-      msgDiv.classList.remove('success', 'error');
-      msgDiv.classList.add(type);
-      msgDiv.style.display = 'block';
-      setTimeout(() => { msgDiv.style.display = 'none'; }, 3000);
-    }
-
-    function showStep(i) {
-      steps.forEach((id, idx) => {
-        document.getElementById(id).style.display = idx === i ? 'block' : 'none';
-      });
-      currentStep = i;
-    }
-
-    userTab.onclick = () => {
-      userTab.classList.add('active');
-      adminTab.classList.remove('active');
-      userContent.classList.add('show');
-      adminContent.classList.remove('show');
-    };
-
-    adminTab.onclick = () => {
-      adminTab.classList.add('active');
-      userTab.classList.remove('active');
-      adminContent.classList.add('show');
-      userContent.classList.remove('show');
-      carregarClientes();
-      carregarRestaurantesAdmin();
-      carregarReservas();
-    };
-
-    document.getElementById('btnNovoCliente').onclick = () => {
-      const form = document.getElementById('novoClienteForm');
-      form.style.display = form.style.display === 'block' ? 'none' : 'block';
-    };
-
-    document.getElementById('cadastrarClienteBtn').onclick = async () => {
-      const nome = document.getElementById('novoNome').value;
-      const telefone = document.getElementById('novoTelefone').value;
-      const email = document.getElementById('novoEmail').value;
-      const res = await fetch('/api/clientes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, telefone, email })
-      });
-      if (res.ok) {
-        showMessage('Cliente cadastrado');
-        document.getElementById('novoClienteForm').style.display = 'none';
-        document.getElementById('novoNome').value = '';
-        document.getElementById('novoTelefone').value = '';
-        document.getElementById('novoEmail').value = '';
-        carregarClientesDisponiveis();
-      } else {
-        showMessage('Erro ao cadastrar cliente', 'error');
-      }
-    };
-
-    document.getElementById('step1Next').onclick = () => showStep(1);
-    document.getElementById('step2Back').onclick = () => showStep(0);
-    document.getElementById('step2Next').onclick = () => showStep(2);
-    document.getElementById('step3Back').onclick = () => showStep(1);
-    document.getElementById('step3Next').onclick = async () => {
-      selectedHorario = document.getElementById('horarioSelect').value;
-      await carregarMesasDisponiveis(selectedRestaurante);
-      showStep(3);
-    };
-    document.getElementById('step4Back').onclick = () => showStep(2);
-    document.getElementById('step4Next').onclick = () => {
-      calcularValor();
-      showStep(4);
-    };
-    document.getElementById('step5Back').onclick = () => showStep(3);
-
-    function calcularValor() {
-      const num = parseInt(document.getElementById('numPessoas').value) || 0;
-      let valor = num * 50;
-      if (num > 6) valor *= 1.1;
-      if (mesaLocalizacao === 'interna') valor *= 1.2;
-      document.getElementById('valor').textContent = `Valor Total: R$${valor.toFixed(2)}`;
-      return valor;
-    }
-
-    async function carregarClientesDisponiveis() {
-      const res = await fetch('/api/clientes-disponiveis');
-      const clientes = await res.json();
-      const select = document.getElementById('clienteSelect');
-      select.innerHTML = '';
-      clientes.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.id_cliente;
-        opt.textContent = c.nome;
-        select.appendChild(opt);
-      });
-    }
-
-    async function carregarRestaurantes() {
-      const res = await fetch('/api/restaurantes');
-      const restaurantes = await res.json();
-      const container = document.getElementById('restauranteCards');
-      container.innerHTML = '';
-      restaurantes.forEach(r => {
-        const card = document.createElement('div');
-        card.className = 'restaurante-card';
-        card.innerHTML = `<h4>${r.nome}</h4><p>${r.endereco}</p>`;
-        card.onclick = () => {
-          document.querySelectorAll('.restaurante-card').forEach(c => c.classList.remove('selected'));
-          card.classList.add('selected');
-          selectedRestaurante = r.id_restaurante;
-          carregarHorarios(selectedRestaurante);
-          document.getElementById('step2Next').disabled = false;
-        };
-        container.appendChild(card);
-      });
-    }
-
-    async function carregarHorarios(id) {
-      const res = await fetch(`/api/horarios?restauranteId=${id}`);
-      const horarios = await res.json();
-      const select = document.getElementById('horarioSelect');
-      select.innerHTML = '';
-      horarios.forEach(h => {
-        const opt = document.createElement('option');
-        opt.value = h.horario;
-        opt.textContent = h.horario;
-        select.appendChild(opt);
-      });
-    }
-
-    async function carregarMesasDisponiveis(id) {
-      const [mesas, reservas] = await Promise.all([
-        fetch(`/api/mesas?restauranteId=${id}`).then(r => r.json()),
-        fetch('/api/reservas').then(r => r.json())
-      ]);
-      const areaInt = document.getElementById('areaInterna');
-      const areaExt = document.getElementById('areaExterna');
-      areaInt.innerHTML = '';
-      areaExt.innerHTML = '';
-      mesas.forEach(m => {
-        const reservada = reservas.some(r =>
-          r.restaurante_id === parseInt(id) &&
-          r.mesa_id === m.id_mesa &&
-          r.horario === selectedHorario &&
-          r.status_pagamento === 'PAGO'
-        );
-        if (reservada) return;
-        const btn = document.createElement('button');
-        btn.className = 'mesa-btn';
-        btn.textContent = `Mesa ${m.id_mesa} (Cap ${m.capacidade})`;
-        btn.onclick = () => {
-          document.querySelectorAll('.mesa-btn').forEach(b => b.classList.remove('selected'));
-          btn.classList.add('selected');
-          selectedMesa = m.id_mesa;
-          mesaLocalizacao = m.localizacao;
-          document.getElementById('step4Next').disabled = false;
-        };
-        if (m.localizacao === 'interna') areaInt.appendChild(btn);
-        else areaExt.appendChild(btn);
-      });
-      document.getElementById('step4Next').disabled = true;
-    }
-
-    document.getElementById('confirmarBtn').onclick = async () => {
-      const valorTotal = calcularValor();
-      const data = {
-        clienteId: document.getElementById('clienteSelect').value,
-        restauranteId: selectedRestaurante,
-        horario: selectedHorario,
-        numPessoas: parseInt(document.getElementById('numPessoas').value),
-        localizacao: mesaLocalizacao,
-        valorTotal,
-        cartaoNumero: document.getElementById('cartao').value,
-        mesaId: selectedMesa
-      };
-      try {
-        const dispRes = await fetch('/api/reservas/verificar-disponibilidade', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        if (!dispRes.ok) {
-          const err = await dispRes.json().catch(() => ({}));
-          showMessage(err.message || 'Erro ao verificar disponibilidade', 'error');
-          return;
-        }
-        const disp = await dispRes.json();
-        if (!disp.disponivel) {
-          showMessage('Mesa indisponível', 'error');
-          return;
-        }
-        const res = await fetch('/api/reservas/criar-reserva', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          showMessage(err.message || 'Erro ao criar reserva', 'error');
-          return;
-        }
-        const result = await res.json();
-        showMessage(
-          result.sucesso ? 'Reserva criada com sucesso!' : result.mensagem,
-          result.sucesso ? 'success' : 'error'
-        );
-        if (result.sucesso) {
-          carregarClientesDisponiveis();
-          carregarReservas();
-          showStep(0);
-        }
-      } catch (e) {
-        console.error(e);
-        showMessage('Falha na comunicação com o servidor', 'error');
-      }
-    };
-
-    async function carregarClientes() {
-      const res = await fetch('/api/clientes');
-      const clientes = await res.json();
-      const list = document.getElementById('listaClientes');
-      list.innerHTML = '';
-      clientes.forEach(c => {
-        const li = document.createElement('li');
-        li.textContent = `${c.nome} - ${c.email}`;
-        list.appendChild(li);
-      });
-    }
-
-    async function carregarRestaurantesAdmin() {
-      const res = await fetch('/api/restaurantes');
-      const restaurantes = await res.json();
-      const list = document.getElementById('listaRestaurantes');
-      list.innerHTML = '';
-      for (const r of restaurantes) {
-        const li = document.createElement('li');
-        li.textContent = `${r.nome} - ${r.endereco}`;
-        const mesas = await (await fetch(`/api/mesas?restauranteId=${r.id_restaurante}`)).json();
-        const horarios = await (await fetch(`/api/horarios?restauranteId=${r.id_restaurante}`)).json();
-        const ulMesas = document.createElement('ul');
-        mesas.forEach(m => {
-          const mi = document.createElement('li');
-          mi.textContent = `Mesa ${m.id_mesa} - Cap ${m.capacidade} - ${m.localizacao}`;
-          ulMesas.appendChild(mi);
-        });
-        const ulHor = document.createElement('ul');
-        horarios.forEach(h => {
-          const hi = document.createElement('li');
-          hi.textContent = `Horário ${h.horario}`;
-          ulHor.appendChild(hi);
-        });
-        li.appendChild(ulMesas);
-        li.appendChild(ulHor);
-        list.appendChild(li);
-      }
-    }
-
-    async function carregarReservas() {
-      const res = await fetch('/api/reservas');
-      const reservas = await res.json();
-      const tbody = document.getElementById('listaReservas');
-      tbody.innerHTML = '';
-      if (!reservas.length) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        td.colSpan = 8;
-        td.textContent = 'nenhuma reserva registrada';
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-        return;
-      }
-      reservas.forEach(r => {
-        const tr = document.createElement('tr');
-        tr.innerHTML =
-          `<td>${r.id_reserva}</td><td>${r.restaurante_id}</td><td>${r.mesa_id}</td>` +
-          `<td>${r.cliente_id}</td><td>${r.horario}</td>` +
-          `<td>${r.num_pessoas}</td><td>${r.preferencia_localizacao}</td>` +
-          `<td>${r.status_pagamento}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-
-    carregarClientes();
-    carregarClientesDisponiveis();
-    carregarRestaurantes();
-    carregarRestaurantesAdmin();
-    carregarReservas();
-  </script>
+    <div id="toast" class="toast"></div>
+    <script src="app.js"></script>
 </body>
 </html>
