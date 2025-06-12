@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>UniReservas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="page-header">
+        <h1>UniReservas</h1>
+        <button id="adminBtn" class="admin-button">Admin</button>
+    </header>
+    <div id="progress" class="progress">Etapa 1 de 4</div>
+    <main class="steps">
+        <section id="step-cliente" class="step active">
+            <h2>Cliente</h2>
+            <div class="field">
+                <label for="clienteSelect">Selecione o cliente</label>
+                <select id="clienteSelect"></select>
+            </div>
+            <button id="toggleNovoCliente">Cadastrar Novo Cliente</button>
+            <div id="cliente-form" class="novo-cliente">
+                <div class="field">
+                    <label for="novoNome">Nome</label>
+                    <input id="novoNome" placeholder="Nome" type="text">
+                </div>
+                <div class="field">
+                    <label for="novoTelefone">Telefone</label>
+                    <input id="novoTelefone" placeholder="Telefone" type="text">
+                </div>
+                <div class="field">
+                    <label for="novoEmail">Email</label>
+                    <input id="novoEmail" placeholder="Email" type="email">
+                </div>
+                <button id="salvarCliente">Cadastrar</button>
+            </div>
+            <div class="actions">
+                <button id="clienteNext" disabled>Próximo</button>
+            </div>
+        </section>
+
+        <section id="step-restaurante" class="step">
+            <h2>Restaurante</h2>
+            <div id="restauranteGrid" class="grid"></div>
+            <div class="actions">
+                <button id="backRestaurante">Voltar</button>
+                <button id="restauranteNext" disabled>Próximo</button>
+            </div>
+        </section>
+
+        <section id="step-horario" class="step">
+            <h2>Horários &amp; Layout</h2>
+            <div class="field">
+                <label for="horarioSelect">Horário</label>
+                <select id="horarioSelect"></select>
+            </div>
+            <div id="layout-map"></div>
+            <div class="actions">
+                <button id="backHorario">Voltar</button>
+                <button id="horarioNext" disabled>Próximo</button>
+            </div>
+        </section>
+
+        <section id="step-pagamento" class="step">
+            <h2>Pagamento</h2>
+            <div id="resumo" class="resumo"></div>
+            <div class="field">
+                <label for="cartao">Número do Cartão</label>
+                <input id="cartao" type="text" maxlength="19">
+            </div>
+            <div class="actions">
+                <button id="backPagamento">Voltar</button>
+                <button id="confirmarReserva">Confirmar Reserva</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+    <script src="app.js"></script>
+</body>
+</html>
